@@ -4,6 +4,8 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
+const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
 
 dotenv.config(); // Load API key dari .env
 
