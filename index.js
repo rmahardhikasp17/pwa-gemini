@@ -203,10 +203,17 @@ app.post('/chatbot/vision', upload.single('file'), async (req, res) => {
     if (file.mimetype.startsWith('image/')) {
       const imagePart = fileToGenerativePart(fileBuffer, file.mimetype);
       parts.push(imagePart);
-    } else if (file.mimetype.startsWith('text/')) {
-      const textContent = fileBuffer.toString('utf-8');
-      prompt += `\n\nText file content:\n${textContent}`;
-      parts = [prompt];
+    } else {
+      // Extract text from document files (PDF, DOCX, TXT, etc.)
+      const extractedText = await extractTextFromFile(fileBuffer, file.mimetype, file.originalname);
+      if (extractedText) {
+        prompt += `\n\nFile: ${file.originalname} (${file.mimetype})\nContent:\n${extractedText}`;
+        parts = [prompt];
+      } else {
+        // For unsupported file types
+        prompt += `\n\nFile: ${file.originalname} (${file.mimetype})\n[Unable to extract text content from this file type]`;
+        parts = [prompt];
+      }
     }
 
     const result = await model.generateContent(parts);
