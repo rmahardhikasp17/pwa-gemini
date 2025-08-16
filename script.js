@@ -442,7 +442,10 @@ class AuroraAI {
 
     async sendToAPI(message) {
         const apiKey = this.settings.apiKey || undefined;
-        const payload = { message };
+        const payload = {
+            message,
+            chatId: this.currentChatId
+        };
 
         if (apiKey) {
             payload.apiKey = apiKey;
