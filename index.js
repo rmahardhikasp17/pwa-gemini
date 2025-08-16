@@ -54,6 +54,42 @@ function fileToGenerativePart(buffer, mimeType) {
   };
 }
 
+// Demo responses for when API key is not available
+function getDemoResponse(message) {
+  const msg = message.toLowerCase();
+
+  if (msg.includes('halo') || msg.includes('hai') || msg.includes('hello')) {
+    return "Halo! 👋 Saya Aurora AI dalam mode demo. Saya adalah asisten virtual dengan tema langit aurora yang cantik! ✨\n\nUntuk mengaktifkan fitur penuh dengan AI Gemini, silakan masukkan API key yang valid di Settings (⚙️).";
+  }
+
+  if (msg.includes('siapa') && (msg.includes('kamu') || msg.includes('anda'))) {
+    return "Saya Aurora AI! 🌌 Asisten virtual dengan tema aurora langit yang indah. Saat ini saya berjalan dalam mode demo.\n\nSaya dirancang untuk membantu Anda dengan berbagai pertanyaan dan tugas. Untuk pengalaman penuh, aktifkan API Gemini di pengaturan!";
+  }
+
+  if (msg.includes('bantuan') || msg.includes('help') || msg.includes('bisa')) {
+    return "Dalam mode demo, saya bisa:\n\n🌟 Menjawab pertanyaan dasar\n💬 Berbincang ringan dengan Anda\n📱 Menunjukkan fitur PWA seperti multiple chat sessions\n🎤 Voice input/output\n📁 File upload (UI demo)\n📤 Export chat history\n🔍 Search messages\n\nUntuk AI responses yang sesungguhnya, masukkan API key Gemini yang valid!";
+  }
+
+  if (msg.includes('aurora') || msg.includes('cantik') || msg.includes('indah')) {
+    return "Terima kasih! 😊 Tema aurora langit memang dirancang khusus untuk memberikan pengalaman visual yang memukau. Aurora adalah fenomena cahaya alami yang terjadi di langit kutub - sama seperti aplikasi ini yang menghadirkan keajaiban teknologi AI! 🌌✨";
+  }
+
+  if (msg.includes('api') && msg.includes('key')) {
+    return "Untuk mendapatkan API key Gemini:\n\n1. 🌐 Kunjungi https://makersuite.google.com/app/apikey\n2. 🔑 Buat API key baru untuk Gemini\n3. ⚙️ Buka Settings di aplikasi ini\n4. 📝 Masukkan API key Anda\n5. 💾 Simpan pengaturan\n\nSetelah itu, saya akan bisa memberikan response AI yang sesungguhnya dari Google Gemini!";
+  }
+
+  if (msg.includes('fitur') || msg.includes('fungsi')) {
+    return "🎉 Fitur Aurora AI PWA:\n\n📱 **Progressive Web App**\n   • Install ke device\n   • Offline capability\n   • Push notifications\n\n💬 **Chat Features**\n   • Multiple chat sessions\n   • Voice input/output\n   • File upload & vision\n   • Search chat history\n\n🎨 **Aurora Theme**\n   • Beautiful sky gradients\n   • Responsive design\n   • Dark/light mode\n\n⚙️ **Customizable**\n   • API key management\n   • Voice language settings\n   • Export options";
+  }
+
+  if (msg.includes('terima kasih') || msg.includes('thanks')) {
+    return "Sama-sama! 😊 Senang bisa membantu Anda menjelajahi Aurora AI. Meski dalam mode demo, saya harap Anda menikmati pengalaman PWA yang telah dirancang dengan penuh perhatian. ✨\n\nJangan lupa untuk mencoba fitur-fitur lainnya seperti voice input dan export chat!";
+  }
+
+  // Default response
+  return `Saya mendengar Anda mengatakan: "${message}" 🌌\n\nDalam mode demo ini, saya memberikan response sederhana. Untuk mendapatkan jawaban AI yang lebih cerdas dan kontekstual dari Google Gemini, silakan konfigurasikan API key yang valid.\n\n💡 **Tips**: Coba tanyakan tentang "bantuan", "fitur", atau "api key" untuk informasi lebih lanjut!`;
+}
+
 // Basic chatbot endpoint
 app.post('/chatbot', async (req, res) => {
   const { message, apiKey } = req.body;
@@ -77,11 +113,12 @@ app.post('/chatbot', async (req, res) => {
   } catch (error) {
     console.error('Chatbot error:', error);
 
-    // Handle specific error types
-    if (error.message.includes('API key')) {
-      return res.status(401).json({
-        error: 'Invalid API key',
-        details: 'Please check your Gemini API key configuration'
+    // Check if it's an API key error - fall back to demo mode
+    if (error.message.includes('API key') || error.status === 400) {
+      console.log('🌟 Falling back to demo mode');
+      const demoResponse = getDemoResponse(message);
+      return res.json({
+        reply: demoResponse + "\n\n---\n*🌟 Mode Demo - Untuk AI sesungguhnya, konfigurasikan API key Gemini di Settings*"
       });
     }
 
