@@ -617,6 +617,104 @@ class AuroraAI {
         }
     }
 
+    // File Upload Functions
+    showFileUploadArea() {
+        document.getElementById('fileUploadArea').classList.remove('hidden');
+    }
+
+    hideFileUploadArea() {
+        const uploadArea = document.getElementById('fileUploadArea');
+        uploadArea.classList.add('hidden');
+        uploadArea.classList.remove('dragover');
+
+        // Clear file input
+        const fileInput = document.getElementById('fileInput');
+        fileInput.value = '';
+    }
+
+    handleFileSelect(files) {
+        if (!files || files.length === 0) return;
+
+        // Validate files
+        const validFiles = Array.from(files).filter(file => {
+            const isImage = file.type.startsWith('image/');
+            const isText = file.type.startsWith('text/');
+            const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
+
+            if (!isImage && !isText) {
+                alert(`File ${file.name} is not supported. Only image and text files are allowed.`);
+                return false;
+            }
+
+            if (!isValidSize) {
+                alert(`File ${file.name} is too large. Maximum size is 10MB.`);
+                return false;
+            }
+
+            return true;
+        });
+
+        if (validFiles.length > 5) {
+            alert('Maximum 5 files allowed at once.');
+            return;
+        }
+
+        if (validFiles.length > 0) {
+            this.sendMessage(validFiles);
+        }
+    }
+
+    // Search functionality
+    async searchMessages(query) {
+        if (!query.trim() || !this.currentChatId) return [];
+
+        const messages = await this.getAllFromIndexedDB('messages', 'chatId', this.currentChatId);
+        const lowercaseQuery = query.toLowerCase();
+
+        return messages.filter(message =>
+            message.content.toLowerCase().includes(lowercaseQuery)
+        ).sort((a, b) => b.timestamp - a.timestamp);
+    }
+
+    async openSearchModal() {
+        const modal = document.getElementById('searchModal');
+        modal.classList.remove('hidden');
+
+        const searchInput = document.getElementById('searchInput');
+        searchInput.focus();
+
+        searchInput.oninput = async (e) => {
+            const query = e.target.value;
+            const results = await this.searchMessages(query);
+            this.displaySearchResults(results);
+        };
+    }
+
+    displaySearchResults(results) {
+        const container = document.getElementById('searchResults');
+
+        if (results.length === 0) {
+            container.innerHTML = '<p class="no-results">No messages found</p>';
+            return;
+        }
+
+        container.innerHTML = results.map(result => `
+            <div class="search-result-item" data-timestamp="${result.timestamp}">
+                <div class="result-sender">${result.sender === 'user' ? '👤 You' : '🤖 Aurora AI'}</div>
+                <div class="result-content">${result.content.substring(0, 100)}${result.content.length > 100 ? '...' : ''}</div>
+                <div class="result-time">${this.formatTime(result.timestamp)}</div>
+            </div>
+        `).join('');
+
+        // Add click handlers
+        container.querySelectorAll('.search-result-item').forEach(item => {
+            item.onclick = () => {
+                // Jump to message (simplified - would need scroll to specific message)
+                this.closeModal('searchModal');
+            };
+        });
+    }
+
     // Settings Management
     loadSettings() {
         const defaultSettings = {
