@@ -347,22 +347,27 @@ class AuroraAI {
         const welcomeDiv = document.createElement('div');
         welcomeDiv.id = 'welcomeMessage';
         welcomeDiv.className = 'welcome-message';
-        
+
+        const demoNotice = this.settings.demoMode ?
+            '<p style="color: #ffa726; font-weight: 600;">🌟 Mode Demo - Untuk AI penuh, konfigurasikan API key Gemini di Settings!</p>' : '';
+
         welcomeDiv.innerHTML = `
             <div class="welcome-content">
                 <div class="welcome-icon">🌌</div>
                 <h3>Selamat datang di Aurora AI!</h3>
                 <p>Saya adalah asisten AI dengan tema aurora langit yang siap membantu Anda. Mulai percakapan dengan mengetik pesan di bawah!</p>
+                ${demoNotice}
                 <div class="quick-actions">
                     <button class="quick-btn" data-message="Halo, apa kabar?">👋 Sapa Aurora</button>
                     <button class="quick-btn" data-message="Apa yang bisa kamu bantu?">❓ Bantuan</button>
                     <button class="quick-btn" data-message="Ceritakan tentang fitur-fiturmu">✨ Fitur</button>
+                    ${this.settings.demoMode ? '<button class="quick-btn" data-message="Bagaimana cara mendapatkan API key?">🔑 API Key</button>' : ''}
                 </div>
             </div>
         `;
-        
+
         chatContainer.appendChild(welcomeDiv);
-        
+
         // Add event listeners to quick action buttons
         const quickBtns = welcomeDiv.querySelectorAll('.quick-btn');
         quickBtns.forEach(btn => {
