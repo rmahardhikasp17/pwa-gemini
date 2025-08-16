@@ -123,7 +123,7 @@ function getDemoResponse(message) {
   }
 
   if (msg.includes('fitur') || msg.includes('fungsi')) {
-    return "🎉 Fitur Aurora AI PWA:\n\n📱 **Progressive Web App**\n   • Install ke device\n   • Offline capability\n   • Push notifications\n\n💬 **Chat Features**\n   • Multiple chat sessions\n   • Voice input/output\n   • File upload & vision\n   • Search chat history\n\n🎨 **Aurora Theme**\n   • Beautiful sky gradients\n   • Responsive design\n   • Dark/light mode\n\n⚙�� **Customizable**\n   • API key management\n   • Voice language settings\n   • Export options";
+    return "🎉 Fitur Aurora AI PWA:\n\n📱 **Progressive Web App**\n   • Install ke device\n   • Offline capability\n   • Push notifications\n\n💬 **Chat Features**\n   • Multiple chat sessions\n   • Voice input/output\n   • File upload & vision\n   • Search chat history\n\n🎨 **Aurora Theme**\n   • Beautiful sky gradients\n   • Responsive design\n   • Dark/light mode\n\n⚙️ **Customizable**\n   • API key management\n   • Voice language settings\n   • Export options";
   }
 
   if (msg.includes('terima kasih') || msg.includes('thanks')) {
@@ -192,8 +192,20 @@ app.post('/chatbot', async (req, res) => {
     const genAI = getAIInstance(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    const result = await model.generateContent(message);
+    // Build prompt with context if chatId provided
+    let promptToSend = message;
+    if (chatId) {
+      promptToSend = buildContextPrompt(chatId, message);
+    }
+
+    const result = await model.generateContent(promptToSend);
     const response = result.response.text();
+
+    // Add to context if chatId provided
+    if (chatId) {
+      addToContext(chatId, 'user', message);
+      addToContext(chatId, 'assistant', response);
+    }
 
     res.json({ reply: response });
   } catch (error) {
