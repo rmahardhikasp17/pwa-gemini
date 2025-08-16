@@ -736,15 +736,22 @@ class AuroraAI {
         const validFiles = Array.from(files).filter(file => {
             const isImage = file.type.startsWith('image/');
             const isText = file.type.startsWith('text/');
+            const isPDF = file.type === 'application/pdf';
+            const isDocx = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            const isDoc = file.type === 'application/msword';
+            const isExcel = file.type.includes('sheet') || file.type.includes('excel');
+            const isPowerPoint = file.type.includes('presentation') || file.type.includes('powerpoint');
+
+            const isValidType = isImage || isText || isPDF || isDocx || isDoc || isExcel || isPowerPoint;
             const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
 
-            if (!isImage && !isText) {
-                alert(`File ${file.name} is not supported. Only image and text files are allowed.`);
+            if (!isValidType) {
+                alert(`File ${file.name} tidak didukung.\n\nFormat yang didukung:\n• Gambar (JPG, PNG, GIF, dll)\n• Text (TXT, CSV, dll)\n• PDF\n• Microsoft Office (DOC, DOCX, XLS, XLSX, PPT, PPTX)`);
                 return false;
             }
 
             if (!isValidSize) {
-                alert(`File ${file.name} is too large. Maximum size is 10MB.`);
+                alert(`File ${file.name} terlalu besar. Maksimal 10MB.`);
                 return false;
             }
 
