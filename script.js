@@ -770,33 +770,238 @@ class AuroraAI {
     }
 
     // Export functionality
-    async exportChats() {
+    async exportChats(format = 'json') {
         try {
             const sessions = await this.getAllFromIndexedDB('chatSessions');
             const allMessages = await this.getAllFromIndexedDB('messages');
-            
-            const exportData = {
-                sessions: sessions,
-                messages: allMessages,
-                exportDate: new Date().toISOString(),
-                version: '1.0.0'
-            };
-            
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-                type: 'application/json'
-            });
-            
+
+            let content, filename, mimeType;
+            const date = new Date().toISOString().split('T')[0];
+
+            switch (format) {
+                case 'json':
+                    const exportData = {
+                        sessions: sessions,
+                        messages: allMessages,
+                        exportDate: new Date().toISOString(),
+                        version: '1.0.0',
+                        app: 'Aurora AI Chat'
+                    };
+                    content = JSON.stringify(exportData, null, 2);
+                    filename = `aurora-ai-chats-${date}.json`;
+                    mimeType = 'application/json';
+                    break;
+
+                case 'txt':
+                    content = this.formatChatsAsText(sessions, allMessages);
+                    filename = `aurora-ai-chats-${date}.txt`;
+                    mimeType = 'text/plain';
+                    break;
+
+                case 'md':
+                    content = this.formatChatsAsMarkdown(sessions, allMessages);
+                    filename = `aurora-ai-chats-${date}.md`;
+                    mimeType = 'text/markdown';
+                    break;
+
+                default:
+                    throw new Error('Unsupported export format');
+            }
+
+            const blob = new Blob([content], { type: mimeType });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `aurora-ai-chats-${new Date().toISOString().split('T')[0]}.json`;
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
+
         } catch (error) {
             console.error('Export failed:', error);
+            alert('Export failed. Please try again.');
+        }
+    }
+
+    formatChatsAsText(sessions, allMessages) {
+        let text = `Aurora AI Chat Export\n`;
+        text += `Generated: ${new Date().toLocaleString()}\n`;
+        text += `Total Sessions: ${sessions.length}\n`;
+        text += `Total Messages: ${allMessages.length}\n\n`;
+        text += '='.repeat(50) + '\n\n';
+
+        sessions.forEach(session => {
+            const sessionMessages = allMessages.filter(m => m.chatId === session.id)
+                .sort((a, b) => a.timestamp - b.timestamp);
+
+            text += `CHAT: ${session.title}\n`;
+            text += `Date: ${new Date(session.timestamp).toLocaleString()}\n`;
+            text += `Messages: ${sessionMessages.length}\n`;
+            text += '-'.repeat(30) + '\n\n';
+
+            sessionMessages.forEach(message => {
+                const time = new Date(message.timestamp).toLocaleString();
+                const sender = message.sender === 'user' ? 'You' : 'Aurora AI';
+                text += `[${time}] ${sender}:\n${message.content}\n\n`;
+            });
+
+            text += '='.repeat(50) + '\n\n';
+        });
+
+        return text;
+    }
+
+    formatChatsAsMarkdown(sessions, allMessages) {
+        let md = `# Aurora AI Chat Export\n\n`;
+        md += `**Generated:** ${new Date().toLocaleString()}  \n`;
+        md += `**Total Sessions:** ${sessions.length}  \n`;
+        md += `**Total Messages:** ${allMessages.length}  \n\n`;
+        md += `---\n\n`;
+
+        sessions.forEach(session => {
+            const sessionMessages = allMessages.filter(m => m.chatId === session.id)
+                .sort((a, b) => a.timestamp - b.timestamp);
+
+            md += `## ${session.title}\n\n`;
+            md += `**Date:** ${new Date(session.timestamp).toLocaleString()}  \n`;
+            md += `**Messages:** ${sessionMessages.length}  \n\n`;
+
+            sessionMessages.forEach(message => {
+                const time = new Date(message.timestamp).toLocaleString();
+                const sender = message.sender === 'user' ? '👤 **You**' : '🤖 **Aurora AI**';
+                md += `### ${sender}\n`;
+                md += `*${time}*\n\n`;
+                md += `${message.content}\n\n`;
+            });
+
+            md += `---\n\n`;
+        });
+
+        return md;
+    }
+
+    // Advanced export with options
+    openExportModal() {
+        // Create export modal if it doesn't exist
+        let modal = document.getElementById('exportModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'exportModal';
+            modal.className = 'modal hidden';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Export Chat History</h3>
+                        <button class="modal-close" aria-label="Close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="setting-group">
+                            <label>Export Format</label>
+                            <select id="exportFormat">
+                                <option value="json">JSON (Complete data)</option>
+                                <option value="txt">Text (Human readable)</option>
+                                <option value="md">Markdown (Formatted)</option>
+                            </select>
+                        </div>
+
+                        <div class="setting-group">
+                            <label>Include</label>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="includeAllSessions" checked>
+                                <span class="toggle-slider"></span>
+                                All chat sessions
+                            </label>
+                            <label class="toggle-label">
+                                <input type="checkbox" id="includeCurrentOnly">
+                                <span class="toggle-slider"></span>
+                                Current session only
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="cancelExport">Cancel</button>
+                        <button class="btn btn-primary" id="confirmExport">Export</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Add event listeners
+            modal.querySelector('.modal-close').onclick = () => this.closeModal('exportModal');
+            modal.querySelector('#cancelExport').onclick = () => this.closeModal('exportModal');
+            modal.querySelector('#confirmExport').onclick = () => this.performExport();
+        }
+
+        modal.classList.remove('hidden');
+    }
+
+    async performExport() {
+        const format = document.getElementById('exportFormat').value;
+        const allSessions = document.getElementById('includeAllSessions').checked;
+        const currentOnly = document.getElementById('includeCurrentOnly').checked;
+
+        if (currentOnly) {
+            await this.exportCurrentSession(format);
+        } else {
+            await this.exportChats(format);
+        }
+
+        this.closeModal('exportModal');
+    }
+
+    async exportCurrentSession(format = 'json') {
+        if (!this.currentChatId) {
+            alert('No active chat session to export');
+            return;
+        }
+
+        try {
+            const session = await this.getFromIndexedDB('chatSessions', this.currentChatId);
+            const messages = await this.getAllFromIndexedDB('messages', 'chatId', this.currentChatId);
+
+            let content, filename, mimeType;
+            const date = new Date().toISOString().split('T')[0];
+            const safeTitle = session.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+
+            switch (format) {
+                case 'json':
+                    const exportData = {
+                        session: session,
+                        messages: messages.sort((a, b) => a.timestamp - b.timestamp),
+                        exportDate: new Date().toISOString(),
+                        version: '1.0.0'
+                    };
+                    content = JSON.stringify(exportData, null, 2);
+                    filename = `aurora-${safeTitle}-${date}.json`;
+                    mimeType = 'application/json';
+                    break;
+
+                case 'txt':
+                    content = this.formatChatsAsText([session], messages);
+                    filename = `aurora-${safeTitle}-${date}.txt`;
+                    mimeType = 'text/plain';
+                    break;
+
+                case 'md':
+                    content = this.formatChatsAsMarkdown([session], messages);
+                    filename = `aurora-${safeTitle}-${date}.md`;
+                    mimeType = 'text/markdown';
+                    break;
+            }
+
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+        } catch (error) {
+            console.error('Export current session failed:', error);
             alert('Export failed. Please try again.');
         }
     }
