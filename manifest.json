@@ -1,0 +1,26 @@
+{
+  "short_name": "FinanceBot",
+  "name": "FinanceBot - Asisten Keuangan AI",
+  "description": "Asisten keuangan AI untuk membantu investasi, budgeting, dan manajemen keuangan pribadi",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9IiMyNTYzZWIiLz4KPHN2ZyB4PSI0OCIgeT0iNDgiIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ3aGl0ZSI+CjxwYXRoIGQ9Ik0xMiAyQzE3LjUgMiAyMiA2LjUgMjIgMTJTMTcuNSAyMiAxMiAyMlMyIDcuNSAyIDEyUzYuNSAyIDEyIDJNMTEgN1Y5SDlWMTFIMTNWMTNIOVYxNUgxMVYxN0gxM1YxNUgxNVYxM0gxM1YxMUgxNVY5SDEzVjdIMTFaIi8+Cjwvc3ZnPgo8L3N2Zz4K",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iNjQiIGZpbGw9IiMyNTYzZWIiLz4KPHN2ZyB4PSIxMjgiIHk9IjEyOCIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPgo8cGF0aCBkPSJNMTIgMkMxNy41IDIgMjIgNi41IDIyIDEyUzE3LjUgMjIgMTIgMjJTMiA3LjUgMiAxMlM2LjUgMiAxMiAyTTExIDdWOUg5VjExSDEzVjEzSDlWMTVIMTFWMTdIMTNWMTVIMTVWMTNIMTNWMTFIMTVWOUgxM1Y3SDExWiIvPgo8L3N2Zz4KPC9zdmc+Cg==",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#2563eb",
+  "orientation": "portrait",
+  "categories": ["finance", "productivity", "business"],
+  "lang": "id",
+  "dir": "ltr"
+}
