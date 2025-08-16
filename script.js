@@ -552,33 +552,64 @@ class AuroraAI {
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             this.recognition = new SpeechRecognition();
-            
+
             this.recognition.continuous = false;
             this.recognition.interimResults = false;
             this.recognition.lang = this.settings.voiceLang || 'id-ID';
-            
+
             this.recognition.onstart = () => {
                 this.isListening = true;
                 this.updateVoiceButton();
-                this.updateChatStatus('Mendengarkan...');
+                this.updateChatStatus('🎤 Mendengarkan... Silakan bicara');
             };
-            
+
             this.recognition.onend = () => {
                 this.isListening = false;
                 this.updateVoiceButton();
                 this.updateChatStatus('Ready to help');
             };
-            
+
             this.recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 document.getElementById('messageInput').value = transcript;
                 this.updateCharCount();
+                this.updateChatStatus('✅ Voice input berhasil dikenali');
             };
-            
+
             this.recognition.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
-                this.updateChatStatus('Voice error: ' + event.error);
+                this.isListening = false;
+                this.updateVoiceButton();
+
+                let errorMessage = 'Terjadi error pada voice input';
+                switch (event.error) {
+                    case 'not-allowed':
+                        errorMessage = '🎤 Akses microphone ditolak. Silakan izinkan akses microphone di browser';
+                        break;
+                    case 'no-speech':
+                        errorMessage = '🤐 Tidak terdeteksi suara. Silakan coba lagi';
+                        break;
+                    case 'audio-capture':
+                        errorMessage = '🎤 Microphone tidak tersedia';
+                        break;
+                    case 'network':
+                        errorMessage = '🌐 Koneksi internet diperlukan untuk voice recognition';
+                        break;
+                    default:
+                        errorMessage = `🔴 Voice error: ${event.error}`;
+                }
+
+                this.updateChatStatus(errorMessage);
+
+                // Show help for permission error
+                if (event.error === 'not-allowed') {
+                    setTimeout(() => {
+                        alert('🎤 Untuk menggunakan voice input:\n\n1. Klik ikon microphone di address bar browser\n2. Pilih "Allow" untuk memberikan akses\n3. Atau buka Settings browser > Privacy > Microphone\n4. Coba lagi setelah memberikan permission');
+                    }, 1000);
+                }
             };
+        } else {
+            console.warn('Speech recognition not supported');
         }
     }
 
