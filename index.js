@@ -18,11 +18,25 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    // Allow images and text files
-    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('text/')) {
+    // Allow images, text files, PDFs, and documents
+    const allowedTypes = [
+      'image/',
+      'text/',
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+      'application/msword', // .doc
+      'application/vnd.ms-excel', // .xls
+      'application/vnd.ms-powerpoint', // .ppt
+    ];
+
+    const isAllowed = allowedTypes.some(type => file.mimetype.startsWith(type) || file.mimetype === type);
+
+    if (isAllowed) {
       cb(null, true);
     } else {
-      cb(new Error('Only image and text files are allowed'), false);
+      cb(new Error(`File type ${file.mimetype} not supported. Allowed: images, text, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX`), false);
     }
   }
 });
