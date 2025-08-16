@@ -908,6 +908,9 @@ class AuroraAI {
         
         // Export
         document.getElementById('exportBtn').addEventListener('click', () => this.exportChats());
+
+        // Search
+        document.getElementById('searchBtn').addEventListener('click', () => this.openSearchModal());
         
         // Modal close events
         document.querySelectorAll('.modal-close').forEach(btn => {
