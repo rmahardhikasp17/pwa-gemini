@@ -180,6 +180,15 @@ function buildContextPrompt(chatId, currentMessage) {
 app.post('/chatbot', async (req, res) => {
   const { message, apiKey, chatId } = req.body;
 
+  // Log request for debugging in production
+  console.log('🚀 Chatbot request received:', {
+    hasMessage: !!message,
+    hasApiKey: !!apiKey,
+    hasChatId: !!chatId,
+    envApiKey: !!process.env.GEMINI_API_KEY,
+    environment: process.env.NODE_ENV || 'development'
+  });
+
   // Validate request
   if (!message) {
     return res.status(400).json({
@@ -207,29 +216,44 @@ app.post('/chatbot', async (req, res) => {
       addToContext(chatId, 'assistant', response);
     }
 
+    console.log('✅ Chatbot response generated successfully');
     res.json({ reply: response });
   } catch (error) {
-    console.error('Chatbot error:', error);
+    console.error('❌ Chatbot error:', {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
 
     // Check if it's an API key error - fall back to demo mode
-    if (error.message.includes('API key') || error.status === 400) {
-      console.log('🌟 Falling back to demo mode');
+    if (error.message.includes('API key') ||
+        error.message.includes('API_KEY_INVALID') ||
+        error.message.includes('invalid') ||
+        error.status === 400 ||
+        error.code === 400) {
+      console.log('🌟 Falling back to demo mode due to API key issue');
       const demoResponse = getDemoResponse(message);
       return res.json({
         reply: demoResponse + "\n\n---\n*🌟 Mode Demo - Untuk AI sesungguhnya, konfigurasikan API key Gemini di Settings*"
       });
     }
 
-    if (error.message.includes('quota') || error.message.includes('limit')) {
+    if (error.message.includes('quota') ||
+        error.message.includes('limit') ||
+        error.message.includes('exceeded') ||
+        error.status === 429) {
       return res.status(429).json({
         error: 'API quota exceeded',
         details: 'Gemini API quota has been exceeded. Please try again later.'
       });
     }
 
-    res.status(500).json({
-      error: 'Error generating response',
-      details: error.message
+    // For any other error, try demo mode as fallback
+    console.log('🌟 Unexpected error, falling back to demo mode');
+    const demoResponse = getDemoResponse(message);
+    return res.json({
+      reply: demoResponse + "\n\n---\n*🌟 Mode Demo - Terjadi masalah koneksi, silakan periksa koneksi internet atau API key*"
     });
   }
 });
@@ -238,6 +262,12 @@ app.post('/chatbot', async (req, res) => {
 app.post('/chatbot/vision', upload.single('file'), async (req, res) => {
   const { message, apiKey } = req.body;
   const file = req.file;
+
+  console.log('📁 Vision request received:', {
+    hasFile: !!file,
+    hasMessage: !!message,
+    hasApiKey: !!apiKey
+  });
 
   try {
     if (!file) {
@@ -276,9 +306,14 @@ app.post('/chatbot/vision', upload.single('file'), async (req, res) => {
     // Clean up uploaded file
     fs.unlinkSync(file.path);
 
+    console.log('✅ Vision response generated successfully');
     res.json({ reply: response });
   } catch (error) {
-    console.error('Vision error:', error);
+    console.error('❌ Vision error:', {
+      message: error.message,
+      status: error.status,
+      code: error.code
+    });
 
     // Clean up file on error
     if (req.file) {
@@ -287,6 +322,18 @@ app.post('/chatbot/vision', upload.single('file'), async (req, res) => {
       } catch (cleanupError) {
         console.error('File cleanup error:', cleanupError);
       }
+    }
+
+    // Check if it's an API key error
+    if (error.message.includes('API key') ||
+        error.message.includes('API_KEY_INVALID') ||
+        error.message.includes('invalid') ||
+        error.status === 400 ||
+        error.code === 400) {
+      console.log('🌟 Vision falling back to demo mode');
+      return res.json({
+        reply: "📁 File diterima dalam mode demo. Untuk analisis file yang sesungguhnya dengan AI Gemini, konfigurasikan API key yang valid di Settings.\n\n---\n*🌟 Mode Demo - File: " + (file ? file.originalname : 'unknown') + "*"
+      });
     }
 
     res.status(500).json({
