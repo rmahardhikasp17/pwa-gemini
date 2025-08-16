@@ -613,16 +613,31 @@ class AuroraAI {
         }
     }
 
-    toggleVoiceRecognition() {
+    async toggleVoiceRecognition() {
         if (!this.recognition) {
-            alert('Voice recognition not supported in your browser');
+            alert('🚫 Voice recognition tidak didukung di browser Anda.\n\nGunakan browser modern seperti Chrome, Edge, atau Safari.');
             return;
         }
-        
+
         if (this.isListening) {
             this.recognition.stop();
-        } else {
+            return;
+        }
+
+        // Check microphone permission first
+        try {
+            if (navigator.permissions) {
+                const permission = await navigator.permissions.query({ name: 'microphone' });
+                if (permission.state === 'denied') {
+                    alert('🎤 Akses microphone ditolak.\n\nSilakan:\n1. Klik ikon microphone di address bar\n2. Pilih "Allow" \n3. Refresh halaman dan coba lagi');
+                    return;
+                }
+            }
+
             this.recognition.start();
+        } catch (error) {
+            console.error('Voice recognition permission error:', error);
+            this.recognition.start(); // Try anyway
         }
     }
 
