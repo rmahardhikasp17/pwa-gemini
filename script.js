@@ -395,11 +395,29 @@ class AuroraAI {
 
         } catch (error) {
             this.hideTypingIndicator();
-            const errorMsg = this.isOnline ?
-                'Maaf, terjadi kesalahan. Silakan coba lagi.' :
-                'Mode offline: Fitur terbatas tersedia.';
+
+            let errorMsg;
+            if (!this.isOnline) {
+                errorMsg = '📡 Mode offline: Fitur terbatas tersedia.';
+            } else if (error.message.includes('🔑') || error.message.includes('API key')) {
+                errorMsg = error.message + '\n\nAnda dapat mengatur API key pribadi di Settings (⚙️).';
+            } else if (error.message.includes('⏱️') || error.message.includes('kuota')) {
+                errorMsg = error.message + '\n\nCoba gunakan API key pribadi atau tunggu beberapa saat.';
+            } else {
+                errorMsg = error.message || '❌ Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi.';
+            }
+
             this.displayMessage('ai', errorMsg);
             console.error('Send message error:', error);
+
+            // Show notification to check settings if API key error
+            if (error.message.includes('🔑') || error.message.includes('API key')) {
+                setTimeout(() => {
+                    if (confirm('Ingin mengatur API key pribadi sekarang?')) {
+                        this.openSettingsModal();
+                    }
+                }, 2000);
+            }
         }
     }
 
