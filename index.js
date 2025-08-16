@@ -70,6 +70,34 @@ function fileToGenerativePart(buffer, mimeType) {
   };
 }
 
+// Helper function to extract text from different file types
+async function extractTextFromFile(buffer, mimeType, originalName) {
+  try {
+    switch (mimeType) {
+      case 'application/pdf':
+        const pdfData = await pdfParse(buffer);
+        return pdfData.text;
+
+      case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        const docxResult = await mammoth.extractRawText({buffer: buffer});
+        return docxResult.value;
+
+      case 'application/msword':
+        // For older .doc files, we'll treat them as binary and let Gemini handle
+        return `[Binary DOC file: ${originalName}]\n[Content extraction not available for legacy .doc format]`;
+
+      default:
+        if (mimeType.startsWith('text/')) {
+          return buffer.toString('utf-8');
+        }
+        return null; // For images and other types
+    }
+  } catch (error) {
+    console.error(`Error extracting text from ${mimeType}:`, error);
+    return `[Error reading file: ${originalName}]`;
+  }
+}
+
 // Demo responses for when API key is not available
 function getDemoResponse(message) {
   const msg = message.toLowerCase();
