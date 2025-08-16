@@ -29,13 +29,19 @@ class AuroraAI {
             const response = await fetch('/api/status');
             if (response.ok) {
                 const status = await response.json();
-                if (!status.gemini) {
-                    this.updateChatStatus('⚠️ API key belum dikonfigurasi');
+                if (status.demoMode) {
+                    this.updateChatStatus('🌟 Mode Demo - Konfigurasikan API key untuk fitur penuh');
+                    this.settings.demoMode = true;
+
+                    // Show demo mode notification
                     setTimeout(() => {
-                        if (confirm('API key Gemini belum dikonfigurasi. Ingin mengatur sekarang?')) {
+                        if (confirm('🌟 Aurora AI berjalan dalam Mode Demo!\n\nUntuk mengaktifkan AI Gemini yang sesungguhnya, Anda perlu API key. Ingin mengatur sekarang?')) {
                             this.openSettingsModal();
                         }
-                    }, 3000);
+                    }, 2000);
+                } else if (status.gemini) {
+                    this.updateChatStatus('✅ Terhubung dengan Gemini AI');
+                    this.settings.demoMode = false;
                 }
             }
         } catch (error) {
