@@ -1,14 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Gemini Chatbot</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot with Gemini AI</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #chatbox { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; }
+        #userInput { width: 80%; padding: 10px; }
+        button { padding: 10px; }
+    </style>
 </head>
 <body>
-  <div id="chat-container"></div>
-  <input type="text" id="user-input" placeholder="Type your message...">
-  <button id="send-button">Send</button>
-  <script src="script.js"></script>
+    <h1>Chat with Gemini AI</h1>
+    <div id="chatbox"></div>
+    <input type="text" id="userInput" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
+    <script>
+        const chatbox = document.getElementById('chatbox');
+        const userInput = document.getElementById('userInput');
+
+        function addMessage(sender, message) {
+            const div = document.createElement('div');
+            div.textContent = `${sender}: ${message}`;
+            chatbox.appendChild(div);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessage('You', message);
+            userInput.value = '';
+
+            try {
+                const response = await fetch('/chatbot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                if (!response.ok) throw new Error('Server error');
+
+                const data = await response.json();
+                addMessage('AI', data.reply);
+            } catch (error) {
+                addMessage('Error', 'Something went wrong: ' + error.message);
+            }
+        }
+    </script>
 </body>
 </html>
