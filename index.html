@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatbot with Gemini AI</title>
+    <link rel="manifest" href="/manifest.json">
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         #chatbox { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; }
@@ -48,6 +49,13 @@
             } catch (error) {
                 addMessage('Error', 'Something went wrong: ' + error.message);
             }
+        }
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker error: ' + err));
+            });
         }
     </script>
 </body>
