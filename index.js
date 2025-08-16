@@ -123,7 +123,7 @@ function getDemoResponse(message) {
   }
 
   if (msg.includes('fitur') || msg.includes('fungsi')) {
-    return "🎉 Fitur Aurora AI PWA:\n\n📱 **Progressive Web App**\n   • Install ke device\n   • Offline capability\n   • Push notifications\n\n💬 **Chat Features**\n   • Multiple chat sessions\n   • Voice input/output\n   • File upload & vision\n   • Search chat history\n\n🎨 **Aurora Theme**\n   • Beautiful sky gradients\n   • Responsive design\n   • Dark/light mode\n\n⚙️ **Customizable**\n   • API key management\n   • Voice language settings\n   • Export options";
+    return "🎉 Fitur Aurora AI PWA:\n\n📱 **Progressive Web App**\n   • Install ke device\n   • Offline capability\n   • Push notifications\n\n💬 **Chat Features**\n   • Multiple chat sessions\n   • Voice input/output\n   • File upload & vision\n   • Search chat history\n\n🎨 **Aurora Theme**\n   • Beautiful sky gradients\n   • Responsive design\n   • Dark/light mode\n\n⚙�� **Customizable**\n   • API key management\n   • Voice language settings\n   • Export options";
   }
 
   if (msg.includes('terima kasih') || msg.includes('thanks')) {
@@ -134,9 +134,51 @@ function getDemoResponse(message) {
   return `Saya mendengar Anda mengatakan: "${message}" 🌌\n\nDalam mode demo ini, saya memberikan response sederhana. Untuk mendapatkan jawaban AI yang lebih cerdas dan kontekstual dari Google Gemini, silakan konfigurasikan API key yang valid.\n\n💡 **Tips**: Coba tanyakan tentang "bantuan", "fitur", atau "api key" untuk informasi lebih lanjut!`;
 }
 
+// In-memory chat context storage (in production, use Redis or database)
+const chatContexts = new Map();
+
+// Helper function to get chat context
+function getChatContext(chatId) {
+  if (!chatContexts.has(chatId)) {
+    chatContexts.set(chatId, []);
+  }
+  return chatContexts.get(chatId);
+}
+
+// Helper function to add message to context
+function addToContext(chatId, role, content) {
+  const context = getChatContext(chatId);
+  context.push({ role, content });
+
+  // Keep only last 20 messages to avoid token limit
+  if (context.length > 20) {
+    context.splice(0, context.length - 20);
+  }
+}
+
+// Helper function to build context prompt
+function buildContextPrompt(chatId, currentMessage) {
+  const context = getChatContext(chatId);
+
+  if (context.length === 0) {
+    return currentMessage;
+  }
+
+  let contextPrompt = "Berikut adalah riwayat percakapan sebelumnya:\n\n";
+
+  context.forEach((msg, index) => {
+    const role = msg.role === 'user' ? 'User' : 'Aurora AI';
+    contextPrompt += `${role}: ${msg.content}\n`;
+  });
+
+  contextPrompt += `\nUser: ${currentMessage}\n\nAurora AI:`;
+
+  return contextPrompt;
+}
+
 // Basic chatbot endpoint
 app.post('/chatbot', async (req, res) => {
-  const { message, apiKey } = req.body;
+  const { message, apiKey, chatId } = req.body;
 
   // Validate request
   if (!message) {
