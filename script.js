@@ -349,40 +349,54 @@ class AuroraAI {
     }
 
     // Message Sending
-    async sendMessage() {
+    async sendMessage(files = null) {
         const input = document.getElementById('messageInput');
         const message = input.value.trim();
-        
-        if (!message || !this.currentChatId) return;
-        
+
+        if ((!message && !files) || !this.currentChatId) return;
+
         // Display user message
-        this.displayMessage('user', message);
-        await this.saveMessage(this.currentChatId, 'user', message);
-        
+        if (message) {
+            this.displayMessage('user', message);
+            await this.saveMessage(this.currentChatId, 'user', message);
+        }
+
+        // Display file info if files are attached
+        if (files && files.length > 0) {
+            const fileInfo = Array.from(files).map(f => `📎 ${f.name}`).join(', ');
+            this.displayMessage('user', `Files: ${fileInfo}`);
+            await this.saveMessage(this.currentChatId, 'user', `Files: ${fileInfo}`);
+        }
+
         // Clear input
         input.value = '';
         this.updateCharCount();
         this.autoResizeTextarea();
-        
+        this.hideFileUploadArea();
+
         // Show typing indicator
         this.showTypingIndicator();
-        
+
         try {
             let response;
             if (this.isOnline) {
-                response = await this.sendToAPI(message);
+                if (files && files.length > 0) {
+                    response = await this.sendFilesToAPI(message, files);
+                } else {
+                    response = await this.sendToAPI(message);
+                }
             } else {
                 response = this.getOfflineResponse(message);
             }
-            
+
             this.hideTypingIndicator();
             this.displayMessage('ai', response);
             await this.saveMessage(this.currentChatId, 'ai', response);
-            
+
         } catch (error) {
             this.hideTypingIndicator();
-            const errorMsg = this.isOnline ? 
-                'Maaf, terjadi kesalahan. Silakan coba lagi.' : 
+            const errorMsg = this.isOnline ?
+                'Maaf, terjadi kesalahan. Silakan coba lagi.' :
                 'Mode offline: Fitur terbatas tersedia.';
             this.displayMessage('ai', errorMsg);
             console.error('Send message error:', error);
