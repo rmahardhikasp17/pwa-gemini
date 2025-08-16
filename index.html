@@ -1,60 +1,147 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot with Gemini AI</title>
+    <title>FinanceBot - Asisten Keuangan AI</title>
     <link rel="manifest" href="/manifest.json">
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        #chatbox { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; }
-        #userInput { width: 80%; padding: 10px; }
-        button { padding: 10px; }
-    </style>
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="Asisten keuangan AI untuk membantu investasi, budgeting, dan manajemen keuangan pribadi">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Chat with Gemini AI</h1>
-    <div id="chatbox"></div>
-    <input type="text" id="userInput" placeholder="Type your message...">
-    <button onclick="sendMessage()">Send</button>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>💰 FinanceBot</h1>
+                    <p class="tagline">Asisten Keuangan AI Anda</p>
+                </div>
+                <button id="install-btn" class="install-btn" style="display: none;">
+                    📱 Install App
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <div class="welcome-content">
+                    <h2>Kelola Keuangan Anda dengan Bijak</h2>
+                    <p>Dapatkan saran finansial, tips investasi, dan bantuan budgeting dari AI yang berpengalaman dalam bidang keuangan.</p>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">📊</div>
+                            <h3>Analisis Keuangan</h3>
+                            <p>Evaluasi kondisi finansial pribadi</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">💎</div>
+                            <h3>Tips Investasi</h3>
+                            <p>Rekomendasi investasi sesuai profil risiko</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">💰</div>
+                            <h3>Budgeting</h3>
+                            <p>Strategi mengatur pemasukan dan pengeluaran</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🎯</div>
+                            <h3>Financial Goals</h3>
+                            <p>Perencanaan mencapai tujuan finansial</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chat Section -->
+            <section class="chat-section">
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h3>💬 Chat dengan FinanceBot</h3>
+                        <p>Tanyakan apapun tentang keuangan, investasi, atau budgeting</p>
+                    </div>
+                    
+                    <div id="chatbox" class="chatbox">
+                        <div class="welcome-message">
+                            <div class="bot-message">
+                                <div class="message-avatar">🤖</div>
+                                <div class="message-content">
+                                    <p>Halo! Saya FinanceBot, asisten keuangan AI Anda. Saya siap membantu Anda dengan:</p>
+                                    <ul>
+                                        <li>💰 Perencanaan dan budgeting</li>
+                                        <li>📈 Tips investasi dan trading</li>
+                                        <li>💳 Manajemen hutang dan kredit</li>
+                                        <li>🏦 Produk perbankan dan asuransi</li>
+                                        <li>💎 Strategi menabung dan dana darurat</li>
+                                    </ul>
+                                    <p>Silakan tanyakan apapun seputar keuangan!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <div class="input-wrapper">
+                            <input type="text" id="userInput" placeholder="Contoh: Bagaimana cara memulai investasi untuk pemula?" maxlength="500">
+                            <button id="sendBtn" class="send-btn">
+                                <span class="send-icon">📤</span>
+                            </button>
+                        </div>
+                        <div class="quick-suggestions">
+                            <button class="suggestion-btn" data-text="Tips menabung untuk dana darurat">💰 Dana Darurat</button>
+                            <button class="suggestion-btn" data-text="Cara memulai investasi saham untuk pemula">📈 Investasi Saham</button>
+                            <button class="suggestion-btn" data-text="Bagaimana membuat budget bulanan yang efektif">📊 Budgeting</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2024 FinanceBot - Powered by Google Gemini AI</p>
+        </footer>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="loading-indicator" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>Sedang memproses...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
     <script>
-        const chatbox = document.getElementById('chatbox');
-        const userInput = document.getElementById('userInput');
+        // PWA Install functionality
+        let deferredPrompt;
+        const installBtn = document.getElementById('install-btn');
 
-        function addMessage(sender, message) {
-            const div = document.createElement('div');
-            div.textContent = `${sender}: ${message}`;
-            chatbox.appendChild(div);
-            chatbox.scrollTop = chatbox.scrollHeight;
-        }
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'block';
+        });
 
-        async function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message) return;
-
-            addMessage('You', message);
-            userInput.value = '';
-
-            try {
-                const response = await fetch('/chatbot', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message })
-                });
-
-                if (!response.ok) throw new Error('Server error');
-
-                const data = await response.json();
-                addMessage('AI', data.reply);
-            } catch (error) {
-                addMessage('Error', 'Something went wrong: ' + error.message);
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installBtn.style.display = 'none';
+                }
+                deferredPrompt = null;
             }
-        }
+        });
+
+        // Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('Service Worker registered'))
-                .catch(err => console.log('Service Worker error: ' + err));
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker error: ' + err));
             });
         }
     </script>
