@@ -425,25 +425,13 @@ class AuroraAI {
             let errorMsg;
             if (!this.isOnline) {
                 errorMsg = '📡 Mode offline: Fitur terbatas tersedia.';
-            } else if (error.message.includes('🔑') || error.message.includes('API key')) {
-                errorMsg = error.message + '\n\nAnda dapat mengatur API key pribadi di Settings (⚙️).';
-            } else if (error.message.includes('⏱️') || error.message.includes('kuota')) {
-                errorMsg = error.message + '\n\nCoba gunakan API key pribadi atau tunggu beberapa saat.';
             } else {
-                errorMsg = error.message || '❌ Maaf, terjadi kesalahan yang tidak terduga. Silakan coba lagi.';
+                // Since we now have demo mode fallback, most errors should be handled by the server
+                errorMsg = '❌ Terjadi kesalahan saat mengirim pesan. Silakan coba lagi.';
+                console.error('Send message error:', error);
             }
 
             this.displayMessage('ai', errorMsg);
-            console.error('Send message error:', error);
-
-            // Show notification to check settings if API key error
-            if (error.message.includes('🔑') || error.message.includes('API key')) {
-                setTimeout(() => {
-                    if (confirm('Ingin mengatur API key pribadi sekarang?')) {
-                        this.openSettingsModal();
-                    }
-                }, 2000);
-            }
         }
     }
 
