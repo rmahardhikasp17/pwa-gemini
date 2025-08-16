@@ -406,23 +406,77 @@ class AuroraAI {
     async sendToAPI(message) {
         const apiKey = this.settings.apiKey || undefined;
         const payload = { message };
-        
+
         if (apiKey) {
             payload.apiKey = apiKey;
         }
-        
+
         const response = await fetch('/chatbot', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }
-        
+
         const data = await response.json();
         return data.reply;
+    }
+
+    async sendFilesToAPI(message, files) {
+        const apiKey = this.settings.apiKey || undefined;
+
+        if (files.length === 1) {
+            // Single file upload
+            const formData = new FormData();
+            formData.append('file', files[0]);
+            formData.append('message', message || 'Analyze this file');
+
+            if (apiKey) {
+                formData.append('apiKey', apiKey);
+            }
+
+            const response = await fetch('/chatbot/vision', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.details || `HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.reply;
+        } else {
+            // Multiple files upload
+            const formData = new FormData();
+
+            for (const file of files) {
+                formData.append('files', file);
+            }
+
+            formData.append('message', message || 'Analyze these files');
+
+            if (apiKey) {
+                formData.append('apiKey', apiKey);
+            }
+
+            const response = await fetch('/chatbot/files', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.details || `HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.reply;
+        }
     }
 
     getOfflineResponse(message) {
