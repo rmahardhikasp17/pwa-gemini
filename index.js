@@ -58,6 +58,14 @@ function fileToGenerativePart(buffer, mimeType) {
 app.post('/chatbot', async (req, res) => {
   const { message, apiKey } = req.body;
 
+  // Validate request
+  if (!message) {
+    return res.status(400).json({
+      error: 'Message is required',
+      details: 'Please provide a message in the request body'
+    });
+  }
+
   try {
     const genAI = getAIInstance(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
@@ -68,6 +76,22 @@ app.post('/chatbot', async (req, res) => {
     res.json({ reply: response });
   } catch (error) {
     console.error('Chatbot error:', error);
+
+    // Handle specific error types
+    if (error.message.includes('API key')) {
+      return res.status(401).json({
+        error: 'Invalid API key',
+        details: 'Please check your Gemini API key configuration'
+      });
+    }
+
+    if (error.message.includes('quota') || error.message.includes('limit')) {
+      return res.status(429).json({
+        error: 'API quota exceeded',
+        details: 'Gemini API quota has been exceeded. Please try again later.'
+      });
+    }
+
     res.status(500).json({
       error: 'Error generating response',
       details: error.message
