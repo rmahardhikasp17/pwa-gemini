@@ -1,0 +1,10 @@
+Ini adalah file test untuk menguji fitur upload file di Aurora AI.
+
+Aplikasi ini seharusnya bisa membaca dan menganalisis konten file ini menggunakan Google Gemini AI.
+
+Features yang ditest:
+1. Upload file text
+2. AI memory/context
+3. Voice recognition
+
+Thank you for testing Aurora AI!
