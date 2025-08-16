@@ -1112,7 +1112,7 @@ class AuroraAI {
         document.getElementById('resetSettings').addEventListener('click', () => this.resetSettings());
         
         // Export
-        document.getElementById('exportBtn').addEventListener('click', () => this.exportChats());
+        document.getElementById('exportBtn').addEventListener('click', () => this.openExportModal());
 
         // Search
         document.getElementById('searchBtn').addEventListener('click', () => this.openSearchModal());
