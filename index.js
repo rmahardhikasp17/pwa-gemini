@@ -291,15 +291,35 @@ app.get('/health', (req, res) => {
 });
 
 // API status endpoint
-app.get('/api/status', (req, res) => {
+app.get('/api/status', async (req, res) => {
+  let geminiStatus = false;
+  let demoMode = false;
+
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      // Test the API key with a simple request
+      const testAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const testModel = testAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      // We won't actually make the request here to avoid quota usage
+      geminiStatus = true;
+    } catch (error) {
+      console.log('API key test failed, using demo mode');
+      demoMode = true;
+    }
+  } else {
+    demoMode = true;
+  }
+
   res.json({
     online: true,
-    gemini: !!process.env.GEMINI_API_KEY,
+    gemini: geminiStatus,
+    demoMode: demoMode,
     features: {
       chat: true,
-      vision: true,
-      fileUpload: true,
-      multiFile: true
+      vision: geminiStatus, // Only available with valid API key
+      fileUpload: geminiStatus, // Only available with valid API key
+      multiFile: geminiStatus, // Only available with valid API key
+      demo: demoMode
     }
   });
 });
