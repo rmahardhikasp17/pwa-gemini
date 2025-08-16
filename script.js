@@ -19,8 +19,28 @@ class AuroraAI {
         this.loadChatSessions();
         this.createNewChat();
         this.updateOnlineStatus();
-        
+        await this.checkAPIStatus();
+
         console.log('🌌 Aurora AI initialized successfully!');
+    }
+
+    async checkAPIStatus() {
+        try {
+            const response = await fetch('/api/status');
+            if (response.ok) {
+                const status = await response.json();
+                if (!status.gemini) {
+                    this.updateChatStatus('⚠️ API key belum dikonfigurasi');
+                    setTimeout(() => {
+                        if (confirm('API key Gemini belum dikonfigurasi. Ingin mengatur sekarang?')) {
+                            this.openSettingsModal();
+                        }
+                    }, 3000);
+                }
+            }
+        } catch (error) {
+            console.warn('Could not check API status:', error);
+        }
     }
 
     // IndexedDB Management
