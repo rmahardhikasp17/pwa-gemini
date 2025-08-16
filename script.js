@@ -418,7 +418,18 @@ class AuroraAI {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = errorData.details || `HTTP ${response.status}`;
+
+            if (response.status === 401) {
+                throw new Error('🔑 API key tidak valid. Silakan periksa pengaturan API key Anda.');
+            } else if (response.status === 429) {
+                throw new Error('⏱️ Kuota API terlampaui. Silakan coba lagi nanti.');
+            } else if (response.status >= 500) {
+                throw new Error('🔧 Terjadi masalah server. Silakan coba lagi dalam beberapa saat.');
+            } else {
+                throw new Error(`❌ Error: ${errorMessage}`);
+            }
         }
 
         const data = await response.json();
