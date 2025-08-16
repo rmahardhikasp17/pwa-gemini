@@ -839,6 +839,59 @@ class AuroraAI {
         // Voice events
         document.getElementById('voiceBtn').addEventListener('click', () => this.toggleVoiceRecognition());
         document.getElementById('voiceToggle').addEventListener('click', () => this.toggleVoiceRecognition());
+
+        // File upload events
+        document.getElementById('fileBtn').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            this.handleFileSelect(e.target.files);
+        });
+
+        // Drag and drop events for file upload area
+        const uploadArea = document.getElementById('fileUploadArea');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            if (!uploadArea.contains(e.relatedTarget)) {
+                uploadArea.classList.remove('dragover');
+            }
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            this.handleFileSelect(e.dataTransfer.files);
+        });
+
+        uploadArea.addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        // Global drag and drop for main chat area
+        const chatContainer = document.getElementById('chatContainer');
+
+        chatContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            this.showFileUploadArea();
+        });
+
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (!uploadArea.contains(e.target)) {
+                this.handleFileSelect(e.dataTransfer.files);
+            }
+        });
         
         // Chat management
         document.getElementById('newChatBtn').addEventListener('click', () => this.createNewChat());
