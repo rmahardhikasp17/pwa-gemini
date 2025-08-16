@@ -1,62 +1,314 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot with Gemini AI</title>
+    <meta name="description" content="Aurora AI Chat - PWA chatbot powered by Google Gemini with beautiful aurora sky theme">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Aurora AI">
+    
+    <title>Aurora AI Chat - Gemini PWA</title>
+    
+    <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        #chatbox { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; }
-        #userInput { width: 80%; padding: 10px; }
-        button { padding: 10px; }
-    </style>
+    
+    <!-- Favicon & Icons -->
+    <link rel="icon" type="image/svg+xml" href="/icons/icon-template.svg">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/style.css" as="style">
+    <link rel="preload" href="/script.js" as="script">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/style.css">
+    
+    <!-- Meta tags for SEO and social sharing -->
+    <meta property="og:title" content="Aurora AI Chat">
+    <meta property="og:description" content="Beautiful PWA chatbot powered by Google Gemini">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/icons/icon-512x512.png">
+    
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Aurora AI Chat">
+    <meta name="twitter:description" content="Beautiful PWA chatbot powered by Google Gemini">
 </head>
 <body>
-    <h1>Chat with Gemini AI</h1>
-    <div id="chatbox"></div>
-    <input type="text" id="userInput" placeholder="Type your message...">
-    <button onclick="sendMessage()">Send</button>
+    <!-- Mobile Menu Toggle -->
+    <button id="mobileMenuToggle" class="mobile-menu-toggle" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Main App Container -->
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1 class="app-title">✨ Aurora AI</h1>
+                <button class="new-chat-btn" id="newChatBtn">
+                    <span>💬</span> New Chat
+                </button>
+            </div>
+            
+            <div class="chat-sessions" id="chatSessions">
+                <!-- Chat sessions will be dynamically populated -->
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="user-settings">
+                    <button class="control-btn" id="settingsBtn" aria-label="Settings">
+                        <span>⚙️</span>
+                    </button>
+                    <button class="control-btn" id="exportBtn" aria-label="Export chats">
+                        <span>📤</span>
+                    </button>
+                    <button class="control-btn" id="themeToggle" aria-label="Toggle theme">
+                        <span>🌙</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Chat Header -->
+            <header class="chat-header">
+                <div class="chat-info">
+                    <h2 class="chat-title" id="chatTitle">Aurora AI Assistant</h2>
+                    <p class="chat-status" id="chatStatus">Ready to help</p>
+                </div>
+                
+                <div class="chat-controls">
+                    <button class="control-btn" id="searchBtn" aria-label="Search messages">
+                        <span>🔍</span>
+                    </button>
+                    <button class="control-btn" id="voiceToggle" aria-label="Toggle voice">
+                        <span>🎤</span>
+                    </button>
+                    <button class="control-btn" id="clearChatBtn" aria-label="Clear chat">
+                        <span>🗑️</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Container -->
+            <div class="chat-container" id="chatContainer">
+                <!-- Welcome Message -->
+                <div class="welcome-message" id="welcomeMessage">
+                    <div class="welcome-content">
+                        <div class="welcome-icon">🌌</div>
+                        <h3>Selamat datang di Aurora AI!</h3>
+                        <p>Saya adalah asisten AI dengan tema aurora langit yang siap membantu Anda. Mulai percakapan dengan mengetik pesan di bawah!</p>
+                        <div class="quick-actions">
+                            <button class="quick-btn" data-message="Halo, apa kabar?">👋 Sapa Aurora</button>
+                            <button class="quick-btn" data-message="Apa yang bisa kamu bantu?">❓ Bantuan</button>
+                            <button class="quick-btn" data-message="Ceritakan tentang fitur-fiturmu">✨ Fitur</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Messages will be dynamically added here -->
+            </div>
+
+            <!-- Typing Indicator -->
+            <div class="typing-indicator hidden" id="typingIndicator">
+                <div class="message-avatar">🤖</div>
+                <div class="typing-content">
+                    <span>Aurora AI is typing</span>
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Container -->
+            <div class="input-container">
+                <!-- File Upload Area (Hidden by default) -->
+                <div class="file-upload-area hidden" id="fileUploadArea">
+                    <div class="upload-content">
+                        <span class="upload-icon">📁</span>
+                        <p>Drag & drop files here or click to browse</p>
+                        <p class="upload-hint">Supports images and text files</p>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*,text/*" multiple hidden>
+                </div>
+
+                <!-- Message Input -->
+                <div class="input-wrapper">
+                    <textarea 
+                        id="messageInput" 
+                        class="message-input" 
+                        placeholder="Type your message... (Shift + Enter for new line)"
+                        rows="1"
+                        maxlength="4000"
+                    ></textarea>
+                    
+                    <div class="input-actions">
+                        <button class="action-btn" id="fileBtn" aria-label="Attach file">
+                            <span>📎</span>
+                        </button>
+                        <button class="action-btn" id="voiceBtn" aria-label="Voice input">
+                            <span>🎤</span>
+                        </button>
+                        <button class="action-btn" id="sendBtn" aria-label="Send message">
+                            <span>➤</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Character Counter -->
+                <div class="character-counter">
+                    <span id="charCount">0</span>/4000
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Settings Modal -->
+    <div class="modal hidden" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label for="apiKeyInput">Gemini API Key (Optional)</label>
+                    <input type="password" id="apiKeyInput" placeholder="Enter your API key">
+                    <small>Leave empty to use default key</small>
+                </div>
+                
+                <div class="setting-group">
+                    <label for="voiceLang">Voice Language</label>
+                    <select id="voiceLang">
+                        <option value="id-ID">Bahasa Indonesia</option>
+                        <option value="en-US">English (US)</option>
+                        <option value="en-GB">English (UK)</option>
+                    </select>
+                </div>
+                
+                <div class="setting-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="autoVoice">
+                        <span class="toggle-slider"></span>
+                        Auto-read AI responses
+                    </label>
+                </div>
+                
+                <div class="setting-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="notificationsEnabled">
+                        <span class="toggle-slider"></span>
+                        Enable notifications
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="resetSettings">Reset</button>
+                <button class="btn btn-primary" id="saveSettings">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Modal -->
+    <div class="modal hidden" id="searchModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Search Messages</h3>
+                <button class="modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="searchInput" placeholder="Search in current chat..." class="search-input">
+                <div class="search-results" id="searchResults">
+                    <!-- Search results will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offline Indicator -->
+    <div class="offline-indicator hidden" id="offlineIndicator">
+        📡 Offline Mode - Limited functionality
+    </div>
+
+    <!-- Install Prompt -->
+    <div class="install-prompt hidden" id="installPrompt">
+        <div class="install-content">
+            <span>📱</span>
+            <span>Install Aurora AI for better experience!</span>
+            <button id="installBtn">Install</button>
+            <button id="dismissInstall">&times;</button>
+        </div>
+    </div>
+
+    <!-- PWA Update Available -->
+    <div class="update-prompt hidden" id="updatePrompt">
+        <div class="update-content">
+            <span>🔄</span>
+            <span>New version available!</span>
+            <button id="updateBtn">Update</button>
+            <button id="dismissUpdate">&times;</button>
+        </div>
+    </div>
+
+    <!-- Loading Script -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h3>Aurora AI</h3>
+            <p>Initializing your AI assistant...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/script.js" defer></script>
+    
+    <!-- Service Worker Registration -->
     <script>
-        const chatbox = document.getElementById('chatbox');
-        const userInput = document.getElementById('userInput');
-
-        function addMessage(sender, message) {
-            const div = document.createElement('div');
-            div.textContent = `${sender}: ${message}`;
-            chatbox.appendChild(div);
-            chatbox.scrollTop = chatbox.scrollHeight;
-        }
-
-        async function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message) return;
-
-            addMessage('You', message);
-            userInput.value = '';
-
-            try {
-                const response = await fetch('/chatbot', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message })
-                });
-
-                if (!response.ok) throw new Error('Server error');
-
-                const data = await response.json();
-                addMessage('AI', data.reply);
-            } catch (error) {
-                addMessage('Error', 'Something went wrong: ' + error.message);
-            }
-        }
+        // Register Service Worker
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('Service Worker registered'))
-                .catch(err => console.log('Service Worker error: ' + err));
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    console.log('SW registered: ', registration);
+                    
+                    // Check for updates
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // Show update prompt
+                                document.getElementById('updatePrompt').classList.remove('hidden');
+                            }
+                        });
+                    });
+                } catch (error) {
+                    console.log('SW registration failed: ', error);
+                }
             });
         }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPrompt').classList.remove('hidden');
+        });
+
+        // Hide loading screen when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+            }, 1000);
+        });
     </script>
 </body>
 </html>
