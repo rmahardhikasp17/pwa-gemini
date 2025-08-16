@@ -39,7 +39,7 @@ app.get('/', (req, res) => {
 function getAIInstance(apiKey) {
   const key = apiKey || process.env.GEMINI_API_KEY;
   if (!key) {
-    throw new Error('No API key provided');
+    throw new Error('No API key provided. Please set GEMINI_API_KEY environment variable or provide apiKey in request.');
   }
   return new GoogleGenerativeAI(key);
 }
