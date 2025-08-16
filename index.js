@@ -265,9 +265,14 @@ app.post('/chatbot/files', upload.array('files', 5), async (req, res) => {
       if (file.mimetype.startsWith('image/')) {
         const imagePart = fileToGenerativePart(fileBuffer, file.mimetype);
         parts.push(imagePart);
-      } else if (file.mimetype.startsWith('text/')) {
-        const textContent = fileBuffer.toString('utf-8');
-        prompt += `\n\nFile: ${file.originalname}\n${textContent}`;
+      } else {
+        // Extract text from document files
+        const extractedText = await extractTextFromFile(fileBuffer, file.mimetype, file.originalname);
+        if (extractedText) {
+          prompt += `\n\n--- File: ${file.originalname} (${file.mimetype}) ---\n${extractedText}\n`;
+        } else {
+          prompt += `\n\n--- File: ${file.originalname} (${file.mimetype}) ---\n[Unable to extract text content]\n`;
+        }
       }
     }
 
